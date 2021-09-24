@@ -247,7 +247,10 @@ class KelinMeterService implements ISynchronizeService
             if ($kelinCustomer) {
                 //$geographicalCoordinatesResult = $this->geographicalLocationFinder->getCoordinatesGivenAddress($kelinCustomer->address);
                 // $geoLocation->points = $geographicalCoordinatesResult['lat'] . ',' . $geographicalCoordinatesResult['lng'];
-                $geoLocation->points =$kelinCustomer->addres;
+
+                $points = $kelinCustomer->address!=null?$kelinCustomer->address:',';
+                $p = $points==null?',': $kelinCustomer->address;
+                $geoLocation->points =$p;
                 $connectionType = $this->connectionType->newQuery()->first();
                 if (!$connectionType) {
                     $connectionType = $this->connectionType->newQuery()->create([
@@ -306,11 +309,12 @@ class KelinMeterService implements ISynchronizeService
             //commented out because of address definition type changed on kelin side
             //   $geographicalCoordinatesResult = $this->geographicalLocationFinder->getCoordinatesGivenAddress($kelinCustomer->address);
             //   $points = $geographicalCoordinatesResult['lat'] . ',' . $geographicalCoordinatesResult['lng'];
-            $points = $kelinCustomer->address;
+            $points = $kelinCustomer->address??',';
             $meterParameter = $this->meterParameter->newQuery()->where('meter_id', $meter->id)->first();
             $meterParameter->owner()->associate($kelinCustomer->mpmPerson());
+            $p = $points==null?"":$points;
             $meterParameter->geo()->update([
-                'points' => $points
+                'points' => $p
             ]);
             $meterParameter->save();
         }
