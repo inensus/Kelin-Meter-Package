@@ -311,7 +311,7 @@ class KelinMeterService implements ISynchronizeService
             //   $points = $geographicalCoordinatesResult['lat'] . ',' . $geographicalCoordinatesResult['lng'];
             $points = $kelinCustomer->address??',';
             $meterParameter = $this->meterParameter->newQuery()->where('meter_id', $meter->id)->first();
-            $meterParameter->owner()->associate($kelinCustomer->mpmPerson());
+            $meterParameter->owner()->associate($kelinCustomer->mpmPerson);
             $p = $points==null?"":$points;
             $meterParameter->geo()->update([
                 'points' => $p

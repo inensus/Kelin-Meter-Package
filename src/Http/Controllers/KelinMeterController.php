@@ -25,7 +25,7 @@ class KelinMeterController extends Controller
     {
       return  KelinMeterResource::collection($this->meterService->getMeters($request));
     }
-    public function sync(): KelinMeterCollection
+    public function sync()
     {
         return  KelinMeterResource::collection($this->meterService->sync());
 
