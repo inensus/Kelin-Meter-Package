@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Inensus\KelinMeter\Services;
-
 
 use App\Models\Address\Address;
 use App\Models\City;
@@ -17,31 +15,29 @@ use App\Models\Meter\MeterTariff;
 use App\Models\Meter\MeterType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Inensus\KelinMeter\Enum\SyncStatusEnum;
 use Inensus\KelinMeter\Exceptions\KelinApiResponseException;
 use Inensus\KelinMeter\Helpers\ApiHelpers;
 use Inensus\KelinMeter\Http\Clients\KelinMeterApiClient;
 use Inensus\KelinMeter\Models\KelinCustomer;
 use Inensus\KelinMeter\Models\KelinMeter;
-use Inensus\KelinMeter\Models\SyncStatus;
-
 
 class KelinMeterService implements ISynchronizeService
 {
-    private $meter;
-    private $rootUrl = '/listMeter';
-    private $kelinMeter;
-    private $kelinApiClient;
-    private $apiHelpers;
-    private $syncSettingService;
-    private $syncActionService;
-    private $kelinCustomer;
-    private $meterParameter;
-    private $manufacturer;
+    private Meter $meter;
+    private string $rootUrl = '/listMeter';
+    private KelinMeter $kelinMeter;
+    private KelinMeterApiClient $kelinApiClient;
+    private ApiHelpers $apiHelpers;
+    private KelinSyncSettingService $syncSettingService;
+    private KelinSyncActionService $syncActionService;
+    private KelinCustomer $kelinCustomer;
+    private MeterParameter $meterParameter;
+    private Manufacturer $manufacturer;
 
-    private $connectionGroup;
-    private $connectionType;
-    private $meterTariff;
-    private $city;
+    private ConnectionGroup $connectionGroup;
+    private ConnectionType $connectionType;
+    private MeterTariff $meterTariff;
     private $earlyRegisteredMeters;
 
     public function __construct(
@@ -58,7 +54,6 @@ class KelinMeterService implements ISynchronizeService
         ConnectionGroup $connectionGroup,
         ConnectionType $connectionType,
         MeterTariff $meterTariff,
-        City $city
     ) {
         $this->meter = $meter;
         $this->kelinMeter = $kelinMeter;
@@ -73,7 +68,6 @@ class KelinMeterService implements ISynchronizeService
         $this->connectionGroup = $connectionGroup;
         $this->connectionType = $connectionType;
         $this->meterTariff = $meterTariff;
-        $this->city = $city;
     }
 
     public function getMeters($request)
@@ -92,7 +86,7 @@ class KelinMeterService implements ISynchronizeService
         try {
             $syncCheck = $this->syncCheck(true);
             $syncCheck['data']->filter(function ($value) {
-                return $value['syncStatus'] === SyncStatus::NOT_REGISTERED_YET;
+                return $value['syncStatus'] === SyncStatusEnum::NOT_REGISTERED_YET;
             })->each(function ($meter) {
                 $createdMeter = $this->createRelatedMeter($meter);
                 $this->kelinMeter->newQuery()->create([
@@ -105,7 +99,7 @@ class KelinMeterService implements ISynchronizeService
                 ]);
             });
             $syncCheck['data']->filter(function ($value) {
-                return $value['syncStatus'] === SyncStatus::EARLY_REGISTERED;
+                return $value['syncStatus'] === SyncStatusEnum::EARLY_REGISTERED;
             })->each(function ($meter) {
                 $updatedMeter = $this->updateRelatedMeter($meter,
                     $meter['relatedMeter']);
@@ -118,7 +112,7 @@ class KelinMeterService implements ISynchronizeService
                 ]);
             });
             $syncCheck['data']->filter(function ($value) {
-                return $value['syncStatus'] === SyncStatus::MODIFIED;
+                return $value['syncStatus'] === SyncStatusEnum::MODIFIED;
             })->each(function ($meter) {
                 $relatedMeter = is_null($meter['relatedMeter']) ?
                     $this->createRelatedMeter($meter) : $this->updateRelatedMeter($meter, $meter['relatedMeter']);
@@ -169,10 +163,10 @@ class KelinMeterService implements ISynchronizeService
             $registeredStmMeter = $kelinMeters->firstWhere('meter_address', $meter['meterAddr']);
             if ($earlyRegisteredMeter) {
                 $meter['hash'] = $meterHash;
-                $meter['syncStatus'] = SyncStatus::EARLY_REGISTERED;
+                $meter['syncStatus'] = SyncStatusEnum::EARLY_REGISTERED;
                 if ($registeredStmMeter) {
                     $meter['syncStatus'] = $meterHash === $registeredStmMeter->hash ?
-                        SyncStatus::SYNCED : SyncStatus::MODIFIED;
+                        SyncStatusEnum::SYNCED : SyncStatusEnum::MODIFIED;
                 }
                 $meter['relatedMeter'] = $earlyRegisteredMeter;
                 $meter['registeredKelinMeter'] = null;
@@ -181,10 +175,10 @@ class KelinMeterService implements ISynchronizeService
                 $relatedMeter = null;
                 if ($registeredStmMeter) {
                     $meter['syncStatus'] = $meterHash === $registeredStmMeter->hash ?
-                        SyncStatus::SYNCED : SyncStatus::MODIFIED;
+                        SyncStatusEnum::SYNCED : SyncStatusEnum::MODIFIED;
                     $relatedMeter = $meters->where('id', $registeredStmMeter->mpm_meter_id)->first();
                 } else {
-                    $meter['syncStatus'] = SyncStatus::NOT_REGISTERED_YET;
+                    $meter['syncStatus'] = SyncStatusEnum::NOT_REGISTERED_YET;
                 }
                 $meter['hash'] = $meterHash;
                 $meter['relatedMeter'] = $relatedMeter;
@@ -192,7 +186,7 @@ class KelinMeterService implements ISynchronizeService
                 return $meter;
             }
         });
-        $meterSyncStatus = $metersCollection->whereNotIn('syncStatus', SyncStatus::SYNCED)->count();
+        $meterSyncStatus = $metersCollection->whereNotIn('syncStatus', SyncStatusEnum::SYNCED)->count();
         if ($meterSyncStatus) {
             return $returnData ? ['data' => $metersCollection, 'result' => false] : ['result' => false];
         }

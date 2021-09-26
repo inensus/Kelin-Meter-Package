@@ -8,12 +8,11 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Inensus\KelinMeter\Models\KelinSetting;
 use Inensus\KelinMeter\Models\KelinSyncSetting;
 
-
 class KelinSyncSettingService
 {
-    private $syncSetting;
-    private $setting;
-    private $syncActionService;
+    private KelinSyncSetting $syncSetting;
+    private KelinSetting $setting;
+    private KelinSyncActionService $syncActionService;
     public function __construct(
         KelinSyncSetting $syncSetting,
         KelinSetting $setting,
@@ -27,9 +26,8 @@ class KelinSyncSettingService
     public function createDefaultSettings()
     {
         $dayInterval = CarbonInterval::make('1day');
-        $fiveMinInterval = CarbonInterval::make('5minute');
-
         $syncCustomer = $this->syncSetting->newQuery()->where('action_name', 'Customers')->first();
+
         if (!$syncCustomer) {
             $now = Carbon::now();
             $customerSetting = $this->setting->newQuery()->make();
@@ -70,7 +68,6 @@ class KelinSyncSettingService
 
     public function updateSyncSettings($syncSettings)
     {
-
         foreach ($syncSettings as $setting) {
             $syncSetting = $this->syncSetting->newQuery()->find($setting['id']);
             $intervalStr = $setting['sync_in_value_num'] . $setting['sync_in_value_str'];

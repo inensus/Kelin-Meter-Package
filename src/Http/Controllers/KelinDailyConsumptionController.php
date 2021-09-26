@@ -1,28 +1,23 @@
 <?php
 
-
 namespace Inensus\KelinMeter\Http\Controllers;
 
-
-use App\Models\Meter\Meter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
-use Inensus\KelinMeter\Http\Resources\DailyConsumptionCollection;
 use Inensus\KelinMeter\Http\Resources\DailyConsumptionResource;
 use Inensus\KelinMeter\Models\KelinMeter;
 use Inensus\KelinMeter\Services\DailyConsumptionService;
 
-
 class KelinDailyConsumptionController extends Controller
 {
-
-    private $dailyConsumptionService;
+    private DailyConsumptionService $dailyConsumptionService;
 
     public function __construct(DailyConsumptionService $dailyConsumptionService)
     {
         $this->dailyConsumptionService = $dailyConsumptionService;
     }
 
-    public function index(KelinMeter $meter)
+    public function index(KelinMeter $meter): AnonymousResourceCollection
     {
         $perPage = \request()->get('per_page') ?? 15;
         return DailyConsumptionResource::collection(
