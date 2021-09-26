@@ -14,23 +14,22 @@ class KelinTransaction extends BaseModel implements ISubTransaction
 {
     protected $table = 'kelin_transactions';
 
-
     public function agentTransaction(): MorphOne
     {
         return $this->morphOne(AgentTransaction::class, 'manufacturer_transaction');
     }
 
-    public function vodacomTransaction()
+    public function vodacomTransaction(): MorphOne
     {
         return $this->morphOne(VodacomTransaction::class, 'manufacturer_transaction');
     }
 
-    public function airtelTransaction()
+    public function airtelTransaction(): MorphOne
     {
         return $this->morphOne(AirtelTransaction::class, 'manufacturer_transaction');
     }
 
-    public function thirdPartyTransaction()
+    public function thirdPartyTransaction(): MorphOne
     {
         return $this->morphOne(ThirdPartyTransaction::class, 'manufacturer_transaction');
     }

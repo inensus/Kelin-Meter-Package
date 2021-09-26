@@ -3,12 +3,13 @@
 namespace Inensus\KelinMeter\Models;
 
 use App\Models\BaseModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class KelinSyncAction extends BaseModel
 {
     protected $table = 'kelin_sync_actions';
 
-    public function synSetting()
+    public function synSetting(): BelongsTo
     {
         return $this->belongsTo(KelinSyncSetting::class, 'sync_setting_id');
     }

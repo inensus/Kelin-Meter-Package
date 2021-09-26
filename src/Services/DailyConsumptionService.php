@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Inensus\KelinMeter\Services;
-
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -11,9 +9,9 @@ use Inensus\KelinMeter\Models\KelinMeterDailyData;
 
 class DailyConsumptionService
 {
-    private $rootUrl = '/getDayData';
-    private $kelinApi;
-    private $kelinMeterDailyData;
+    private string $rootUrl = '/getDayData';
+    private KelinMeterApiClient $kelinApi;
+    private KelinMeterDailyData $kelinMeterDailyData;
     public function __construct(
         KelinMeterApiClient $kelinApi,
         KelinMeterDailyData $kelinMeterDailyData

@@ -6,10 +6,9 @@ use Carbon\Carbon;
 use Carbon\CarbonInterval;
 use Inensus\KelinMeter\Models\KelinSyncAction;
 
-
 class KelinSyncActionService
 {
-    private $syncAction;
+    private KelinSyncAction $syncAction;
 
     public function __construct(KelinSyncAction $syncAction)
     {

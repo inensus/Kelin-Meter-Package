@@ -2,14 +2,11 @@
 
 namespace Inensus\KelinMeter\Services;
 
-
-
 use Inensus\KelinMeter\Models\KelinSetting;
 
 class KelinSettingService
 {
-
-    private $kelinSetting;
+    private KelinSetting $kelinSetting;
 
     public function __construct(KelinSetting $kelinSetting)
     {

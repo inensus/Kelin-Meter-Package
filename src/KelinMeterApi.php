@@ -23,53 +23,37 @@ use Inensus\KelinMeter\Services\KelinMeterService;
 
 class KelinMeterApi implements IManufacturerAPI
 {
-    private $rootUrl = '/recharge';
-    private $meterParameter;
-    private $kelinCustomer;
-    private $kelinMeter;
-    private $kelinMeterService;
-    private $credentialService;
-    private $customerService;
-    private $kelinTransaction;
-    private $transaction;
-    private $kelinApi;
+    private string $rootUrl = '/recharge';
+    private KelinMeter $kelinMeter;
+    private KelinTransaction $kelinTransaction;
+    private KelinMeterApiClient $kelinApi;
 
     public function __construct(
-        MeterParameter $meterParameter,
-        KelinCustomer $kelinCustomer,
         KelinMeter $kelinMeter,
-        KelinMeterService $kelinMeterService,
-        KelinCredentialService $credentialService,
-        KelinCustomerService $customerService,
         KelinTransaction $kelinTransaction,
-        Transaction $transaction,
         KelinMeterApiClient $kelinApi
     ) {
-        $this->meterParameter = $meterParameter;
-        $this->kelinCustomer = $kelinCustomer;
-        $this->credentialService = $credentialService;
-        $this->customerService = $customerService;
         $this->kelinTransaction = $kelinTransaction;
         $this->kelinMeter = $kelinMeter;
-        $this->kelinMeterService = $kelinMeterService;
-        $this->transaction = $transaction;
         $this->kelinApi = $kelinApi;
     }
 
+    /**
+     * @throws Exceptions\KelinApiCredentialsNotFoundException
+     * @throws KelinApiResponseException
+     */
     public function chargeMeter($transactionContainer): array
     {
         $meterParameter = $transactionContainer->meterParameter;
         $tariff = $meterParameter->tariff()->first();
         $transactionContainer->chargedEnergy += $transactionContainer->amount / ($tariff->total_price / 100);
-        Log::critical('ENERGY TO BE CHARGED float ' .
-            (float)$transactionContainer->chargedEnergy .
-            ' Manufacturer => Kelin');
-          if (config('app.debug')) {
-               return [
-                   'token' => 'debug-token',
-                   'energy' => (float)$transactionContainer->chargedEnergy,
-               ];
-           } else {
+
+        if (app()->environment() !== 'production') {
+            return [
+                'token' => 'debug-token',
+                'energy' => (float)$transactionContainer->chargedEnergy,
+            ];
+        }
         $amount = $transactionContainer->totalAmount;
         try {
             $kelinMeter = $this->kelinMeter->newQuery()->where(
@@ -84,7 +68,7 @@ class KelinMeterApi implements IManufacturerAPI
             'meterNo' => $kelinMeter->meter_address,
             'tariff' => $tariff->total_price / 100,
             'recharge' => $amount,
-            'energy'=>$transactionContainer->chargedEnergy,
+            'energy' => $transactionContainer->chargedEnergy,
             'rechargeTime' => Carbon::now()->format('Y-m-d'),
         ];
 
@@ -113,33 +97,37 @@ class KelinMeterApi implements IManufacturerAPI
             'amount' => $amount,
         ];
         $this->associateManufacturerTransaction($transactionContainer, $transactionResult);
-        $token = $transactionResult['opType'] === 2 ? sprintf('EnergyToken : %s',
-            $transactionResult['payToken']) : sprintf('OpenToken1 : %s OpenToken2 : %s', $transactionResult['openToken1'],
-            $transactionResult['openToken2']);
-            return [
-                'token' => $token,
-                'energy' => $transactionContainer->chargedEnergy
-            ];
-       }
+        $token = $transactionResult['opType'] === 2 ? sprintf(
+            'EnergyToken : %s',
+            $transactionResult['payToken']
+        ) : sprintf(
+            'OpenToken1 : %s OpenToken2 : %s',
+            $transactionResult['openToken1'],
+            $transactionResult['openToken2']
+        );
+        return [
+            'token' => $token,
+            'energy' => $transactionContainer->chargedEnergy
+        ];
     }
 
-    public function clearMeter(Meter $meter)
+    public function clearMeter(Meter $meter): void
     {
     }
 
     public function associateManufacturerTransaction(
         TransactionDataContainer $transactionContainer,
         $transactionResult = []
-    ) {
+    ): void {
         $manufacturerTransaction = $this->kelinTransaction->newQuery()->create([
-            'meter_serial' => $transactionResult['meterSerial'],
-            'amount' => $transactionResult['amount'],
-            'op_type' => $transactionResult['opType'],
-            'pay_kwh' => $transactionResult['payKWH'],
-            'open_token_1' => $transactionResult['openToken1'],
-            'open_token_2' => $transactionResult['openToken2'],
-            'pay_token' => $transactionResult['payToken'],
-        ]);
+                                                                                   'meter_serial' => $transactionResult['meterSerial'],
+                                                                                   'amount' => $transactionResult['amount'],
+                                                                                   'op_type' => $transactionResult['opType'],
+                                                                                   'pay_kwh' => $transactionResult['payKWH'],
+                                                                                   'open_token_1' => $transactionResult['openToken1'],
+                                                                                   'open_token_2' => $transactionResult['openToken2'],
+                                                                                   'pay_token' => $transactionResult['payToken'],
+                                                                               ]);
         $transactionContainer->transaction->originalTransaction()->associate($manufacturerTransaction)->save();
     }
 }

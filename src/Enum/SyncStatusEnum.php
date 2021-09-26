@@ -1,10 +1,10 @@
 <?php
 
 
-namespace Inensus\KelinMeter\Models;
+namespace Inensus\KelinMeter\Enum;
 
 
-abstract class SyncStatus
+abstract class SyncStatusEnum
 {
     const SYNCED = 1;
     const MODIFIED = 2;

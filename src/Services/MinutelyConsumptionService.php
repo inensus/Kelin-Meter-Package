@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Inensus\KelinMeter\Services;
-
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -11,9 +9,9 @@ use Inensus\KelinMeter\Models\KelinMeterMinutelyData;
 
 class MinutelyConsumptionService
 {
-    private $rootUrl = '/getMinData';
-    private $kelinApi;
-    private $kelinMeterMinutelyData;
+    private string $rootUrl = '/getMinData';
+    private KelinMeterApiClient $kelinApi;
+    private KelinMeterMinutelyData $kelinMeterMinutelyData;
 
     public function __construct(
         KelinMeterApiClient $kelinApi,

@@ -5,17 +5,15 @@ namespace Inensus\KelinMeter\Services;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
-
 use Inensus\KelinMeter\Exceptions\KelinApiResponseException;
 use Inensus\KelinMeter\Http\Clients\KelinMeterApiClient;
 use Inensus\KelinMeter\Models\KelinCredential;
 
-
 class KelinCredentialService
 {
-    private $rootUrl = '/login';
-    private $credential;
-    private $kelinApi;
+    private string $rootUrl = '/login';
+    private KelinCredential$credential;
+    private KelinMeterApiClient $kelinApi;
 
     public function __construct(
         KelinCredential $credential,
@@ -27,7 +25,6 @@ class KelinCredentialService
 
     /**
      * This function uses one time on installation of the package.
-     *
      */
     public function createCredentials()
     {
@@ -47,7 +44,6 @@ class KelinCredentialService
 
     public function updateCredentials($data)
     {
-
         $credential = $this->getCredentials();
         $credential->update([
             'username' => $data['username'],

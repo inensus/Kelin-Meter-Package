@@ -2,10 +2,9 @@
 
 namespace Inensus\KelinMeter\Services;
 
-
 class MenuItemService
 {
-    public function createMenuItems()
+    public function createMenuItems(): array
     {
         $menuItem = [
             'name' => 'Kelin Meter',
@@ -38,7 +37,6 @@ class MenuItemService
         ];
         array_push($subMenuItems, $subMenuItem4);
         return ['menuItem'=>$menuItem,'subMenuItems'=>$subMenuItems];
-
 
     }
 }
