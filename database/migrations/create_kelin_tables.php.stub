@@ -48,8 +48,8 @@ class CreateKelinTables extends Migration
         if (!Schema:: hasTable('kelin_transactions')) {
             Schema::create('kelin_transactions', function (Blueprint $table) {
                 $table->increments('id');
-                $table->string('meter_serial')->unique();
-                $table->decimal('amount')->unique();
+                $table->string('meter_serial');
+                $table->decimal('amount');
                 $table->integer('op_type');
                 $table->string('pay_kwh');
                 $table->string('open_token_1');

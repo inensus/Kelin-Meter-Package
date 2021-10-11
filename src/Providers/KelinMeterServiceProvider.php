@@ -50,15 +50,15 @@ class KelinMeterServiceProvider extends ServiceProvider
                 ->appendOutputTo(storage_path('logs/cron.log'));
             $app->make(Schedule::class)->command('kelin-meter:dataSync')->withoutOverlapping(50)
                 ->appendOutputTo(storage_path('logs/cron.log'));
-             $app->make(Schedule::class)->command('kelin-meter:read-minutely-consumptions')->everyFifteenMinutes()->withoutOverlapping(50)
-                     ->appendOutputTo(storage_path('logs/cron.log'));
-                 $app->make(Schedule::class)->command('kelin-meter:read-daily-consumptions')->dailyAt('00:30')->withoutOverlapping(50)
-                     ->appendOutputTo(storage_path('logs/cron.log'));
+            $app->make(Schedule::class)->command('kelin-meter:read-minutely-consumptions')->everyFifteenMinutes()->withoutOverlapping(50)
+                ->appendOutputTo(storage_path('logs/cron.log'));
+            $app->make(Schedule::class)->command('kelin-meter:read-daily-consumptions')->dailyAt('00:30')->withoutOverlapping(50)
+                ->appendOutputTo(storage_path('logs/cron.log'));
         });
         Relation::morphMap(
             [
                 'kelin_sync_setting' => KelinSyncSetting::class,
-
+                'kelin_transaction' => KelinTransaction::class
             ]
         );
     }
